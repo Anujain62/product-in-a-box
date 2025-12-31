@@ -4,27 +4,25 @@ import { Flame, Trophy, BookOpen, Target, TrendingUp, Clock, Award, ArrowRight }
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
-
-const quickStats = [
-  { label: 'Current Streak', value: '0 days', icon: Flame, color: 'text-warning' },
-  { label: 'Total XP', value: '0', icon: Trophy, color: 'text-primary' },
-  { label: 'Courses Started', value: '0', icon: BookOpen, color: 'text-info' },
-  { label: 'Problems Solved', value: '0', icon: Target, color: 'text-accent' },
-];
+import { useProfile, useUserStats, useUserAchievements, useRecentActivity } from '@/hooks/useProfile';
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: stats, isLoading: statsLoading } = useUserStats();
+  const { data: achievements } = useUserAchievements();
+  const { data: recentActivity } = useRecentActivity();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate('/auth');
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (loading) {
+  if (authLoading) {
     return (
       <Layout>
         <div className="container py-20 text-center">
@@ -34,13 +32,40 @@ export default function Dashboard() {
     );
   }
 
+  const quickStats = [
+    { 
+      label: 'Current Streak', 
+      value: profile ? `${profile.current_streak} days` : '0 days', 
+      icon: Flame, 
+      color: 'text-warning' 
+    },
+    { 
+      label: 'Total XP', 
+      value: profile ? profile.total_xp.toLocaleString() : '0', 
+      icon: Trophy, 
+      color: 'text-primary' 
+    },
+    { 
+      label: 'Lessons Completed', 
+      value: stats?.lessonsCompleted?.toString() || '0', 
+      icon: BookOpen, 
+      color: 'text-info' 
+    },
+    { 
+      label: 'Problems Solved', 
+      value: stats?.problemsSolved?.toString() || '0', 
+      icon: Target, 
+      color: 'text-accent' 
+    },
+  ];
+
   return (
     <Layout>
       <div className="container py-8">
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold">
-            Welcome back, <span className="text-primary">{user?.user_metadata?.full_name || 'Learner'}</span>!
+            Welcome back, <span className="text-primary">{profile?.full_name || user?.user_metadata?.full_name || 'Learner'}</span>!
           </h1>
           <p className="text-muted-foreground mt-1">Continue your learning journey</p>
         </div>
@@ -58,7 +83,11 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">{stat.label}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
+                      {profileLoading || statsLoading ? (
+                        <Skeleton className="h-8 w-16" />
+                      ) : (
+                        <p className="text-2xl font-bold">{stat.value}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -74,18 +103,40 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  Continue Learning
+                  {recentActivity && recentActivity.length > 0 ? 'Recent Progress' : 'Continue Learning'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">Start Your First Course</h3>
-                  <p className="text-muted-foreground mb-4">Explore our courses and begin your journey</p>
-                  <Button asChild>
-                    <Link to="/courses">Browse Courses <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                  </Button>
-                </div>
+                {recentActivity && recentActivity.length > 0 ? (
+                  <div className="space-y-3">
+                    {recentActivity.slice(0, 5).map((activity: any) => (
+                      <Link
+                        key={activity.id}
+                        to={`/courses/${activity.lessons?.courses?.subjects?.slug}/${activity.lessons?.courses?.slug}/${activity.lessons?.slug}`}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors"
+                      >
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <BookOpen className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{activity.lessons?.title}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {activity.lessons?.courses?.title} • {activity.lessons?.courses?.subjects?.name}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-semibold text-lg mb-2">Start Your First Course</h3>
+                    <p className="text-muted-foreground mb-4">Explore our courses and begin your journey</p>
+                    <Button asChild>
+                      <Link to="/courses">Browse Courses <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -120,9 +171,23 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Complete lessons to earn achievements!
-                </p>
+                {achievements && achievements.length > 0 ? (
+                  <div className="space-y-2">
+                    {achievements.slice(0, 3).map((ua: any) => (
+                      <div key={ua.id} className="flex items-center gap-3 p-2 rounded-lg bg-secondary/50">
+                        <span className="text-2xl">{ua.achievements?.icon || '🏆'}</span>
+                        <div>
+                          <p className="font-medium text-sm">{ua.achievements?.name}</p>
+                          <p className="text-xs text-muted-foreground">+{ua.achievements?.xp_reward} XP</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Complete lessons to earn achievements!
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

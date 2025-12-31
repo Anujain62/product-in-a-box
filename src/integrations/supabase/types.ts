@@ -1020,6 +1020,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_lesson: {
+        Args: { p_lesson_id: string; p_user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1027,6 +1031,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_xp: {
+        Args: { p_user_id: string; p_xp: number }
+        Returns: undefined
+      }
+      update_streak: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "mentor" | "user"
