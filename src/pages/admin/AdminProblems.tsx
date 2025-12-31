@@ -29,8 +29,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2, Lightbulb } from 'lucide-react';
+import { Plus, Pencil, Trash2, Lightbulb, Code } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
 
 interface Problem {
   id: string;
@@ -59,6 +60,10 @@ export default function AdminProblems() {
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [hintsInput, setHintsInput] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; problem: Problem | null }>({
+    open: false,
+    problem: null,
+  });
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -163,14 +168,15 @@ export default function AdminProblems() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this problem?')) return;
+  async function handleDelete() {
+    if (!deleteDialog.problem) return;
 
     try {
-      const { error } = await supabase.from('practice_problems').delete().eq('id', id);
+      const { error } = await supabase.from('practice_problems').delete().eq('id', deleteDialog.problem.id);
 
       if (error) throw error;
       toast({ title: 'Success', description: 'Problem deleted successfully' });
+      setDeleteDialog({ open: false, problem: null });
       fetchData();
     } catch (error: any) {
       console.error('Error deleting problem:', error);
@@ -323,8 +329,12 @@ export default function AdminProblems() {
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
           ) : filteredProblems.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              No problems found. Create your first practice problem.
+            <div className="p-8 text-center">
+              <Code className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">No problems found.</p>
+              <p className="text-sm text-muted-foreground">
+                Click "Add Problem" to create your first practice problem.
+              </p>
             </div>
           ) : (
             <Table>
@@ -366,7 +376,11 @@ export default function AdminProblems() {
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(problem)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(problem.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteDialog({ open: true, problem })}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -377,6 +391,13 @@ export default function AdminProblems() {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ open, problem: open ? deleteDialog.problem : null })}
+        onConfirm={handleDelete}
+        itemName={deleteDialog.problem?.title}
+      />
     </AdminLayout>
   );
 }
