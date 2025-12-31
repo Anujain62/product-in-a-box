@@ -1,4 +1,5 @@
-import { Users, Crown, Calendar, Target, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Crown, Calendar, Target } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStudyGroups, useJoinStudyGroup } from '@/hooks/useStudyGroups';
+import { CreateGroupDialog } from '@/components/study-groups/CreateGroupDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function StudyGroups() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: groups, isLoading } = useStudyGroups();
@@ -37,7 +40,7 @@ export default function StudyGroups() {
             <h1 className="text-4xl font-bold mb-2">Study Groups</h1>
             <p className="text-muted-foreground">Join accountability groups for structured learning with peers</p>
           </div>
-          <Button><Plus className="h-4 w-4 mr-2" /> Create Group</Button>
+          <CreateGroupDialog />
         </div>
 
         <div className="grid gap-4 md:grid-cols-4 mb-12">
@@ -67,7 +70,7 @@ export default function StudyGroups() {
         ) : groups && groups.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2">
             {groups.map((group) => (
-              <Card key={group.id} className="hover:shadow-lg transition-shadow">
+              <Card key={group.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/study-groups/${group.id}`)}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -95,7 +98,10 @@ export default function StudyGroups() {
                       <span className="font-bold">₹{group.monthly_price}<span className="text-muted-foreground font-normal">/mo</span></span>
                       <Button 
                         disabled={group.member_count >= group.max_members || group.is_member || joinGroup.isPending}
-                        onClick={() => handleJoin(group.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleJoin(group.id);
+                        }}
                       >
                         {group.is_member ? 'Joined' : group.member_count >= group.max_members ? 'Full' : 'Join'}
                       </Button>
