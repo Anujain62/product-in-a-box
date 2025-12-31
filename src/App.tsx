@@ -15,6 +15,7 @@ import Leaderboard from "./pages/Leaderboard";
 import StudyGroups from "./pages/StudyGroups";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import LessonViewer from "./pages/LessonViewer";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminSubjects from "./pages/admin/AdminSubjects";
 import AdminCourses from "./pages/admin/AdminCourses";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:subjectSlug" element={<CourseDetail />} />
+            <Route path="/courses/:subjectSlug/:courseSlug/:lessonSlug" element={<LessonViewer />} />
             <Route path="/mentors" element={<Mentors />} />
             <Route path="/community" element={<Community />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
