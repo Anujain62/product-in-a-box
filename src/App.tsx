@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
+import Practice from "./pages/Practice";
+import ProblemDetail from "./pages/ProblemDetail";
 import Mentors from "./pages/Mentors";
 import MentorDetail from "./pages/MentorDetail";
 import MySessions from "./pages/MySessions";
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:subjectSlug" element={<CourseDetail />} />
             <Route path="/courses/:subjectSlug/:courseSlug/:lessonSlug" element={<LessonViewer />} />
+            <Route path="/practice" element={<Practice />} />
+            <Route path="/practice/:problemId" element={<ProblemDetail />} />
             <Route path="/mentors" element={<Mentors />} />
             <Route path="/mentors/:mentorId" element={<MentorDetail />} />
             <Route path="/my-sessions" element={<MySessions />} />
