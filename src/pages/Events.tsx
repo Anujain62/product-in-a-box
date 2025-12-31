@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Crown, Users, ChevronDown } from 'lucide-react';
-import { format, isPast } from 'date-fns';
+import { Calendar, Clock, Crown, Users } from 'lucide-react';
+import { format, isPast, formatDistanceToNow } from 'date-fns';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
 interface Event {
   id: string;
@@ -27,29 +29,36 @@ interface Registration {
 }
 
 export default function Events() {
-  const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch events with React Query
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('starts_at', { ascending: true });
+      if (error) throw error;
+      return data as Event[];
+    },
+  });
+
+  // Real-time subscription for events
+  useRealtimeSubscription({
+    table: 'events',
+    queryKey: ['events'],
+  });
 
   useEffect(() => {
-    fetchEvents();
     if (user) {
       fetchRegistrations();
     }
   }, [user]);
-
-  const fetchEvents = async () => {
-    const { data } = await supabase
-      .from('events')
-      .select('*')
-      .order('starts_at', { ascending: true });
-    
-    setEvents(data || []);
-    setLoading(false);
-  };
 
   const fetchRegistrations = async () => {
     const { data } = await supabase
@@ -124,72 +133,82 @@ export default function Events() {
   const upcomingEvents = events.filter(e => !isPast(new Date(e.starts_at)));
   const pastEvents = events.filter(e => isPast(new Date(e.starts_at)));
 
-  const EventCard = ({ event, isPastEvent = false }: { event: Event; isPastEvent?: boolean }) => (
-    <Card className={`glass-card transition-all hover:scale-[1.01] ${isPastEvent ? 'opacity-70' : ''}`}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <Badge variant={event.event_type === 'webinar' ? 'default' : event.event_type === 'workshop' ? 'secondary' : 'outline'}>
-                {event.event_type}
-              </Badge>
-              {event.is_premium && (
-                <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
-                  <Crown className="h-3 w-3 mr-1" />
-                  Premium
+  const EventCard = ({ event, isPastEvent = false }: { event: Event; isPastEvent?: boolean }) => {
+    const startsAt = new Date(event.starts_at);
+    const isStartingSoon = !isPastEvent && startsAt.getTime() - Date.now() < 24 * 60 * 60 * 1000;
+
+    return (
+      <Card className={`transition-all hover:shadow-md ${isPastEvent ? 'opacity-70' : ''}`}>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <Badge variant={event.event_type === 'webinar' ? 'default' : event.event_type === 'workshop' ? 'secondary' : 'outline'}>
+                  {event.event_type}
                 </Badge>
-              )}
-              {isPastEvent && (
-                <Badge variant="outline" className="text-muted-foreground">
-                  Completed
-                </Badge>
-              )}
-            </div>
-            
-            <h3 className="font-semibold text-xl mb-2">{event.title}</h3>
-            <p className="text-muted-foreground mb-4">{event.description}</p>
-            
-            <div className="flex items-center gap-6 text-sm text-muted-foreground flex-wrap">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>{format(new Date(event.starts_at), 'EEEE, MMMM d, yyyy')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>{format(new Date(event.starts_at), 'h:mm a')}</span>
-                {event.ends_at && (
-                  <span>- {format(new Date(event.ends_at), 'h:mm a')}</span>
+                {event.is_premium && (
+                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                )}
+                {isPastEvent && (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Completed
+                  </Badge>
+                )}
+                {isStartingSoon && (
+                  <Badge className="bg-green-500/10 text-green-500 border-green-500/30">
+                    Starts {formatDistanceToNow(startsAt, { addSuffix: true })}
+                  </Badge>
                 )}
               </div>
-              {event.max_attendees && (
+              
+              <h3 className="font-semibold text-xl mb-2">{event.title}</h3>
+              <p className="text-muted-foreground mb-4">{event.description}</p>
+              
+              <div className="flex items-center gap-6 text-sm text-muted-foreground flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>{event.max_attendees} spots</span>
+                  <Calendar className="h-4 w-4" />
+                  <span>{format(startsAt, 'EEEE, MMMM d, yyyy')}</span>
                 </div>
-              )}
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>{format(startsAt, 'h:mm a')}</span>
+                  {event.ends_at && (
+                    <span>- {format(new Date(event.ends_at), 'h:mm a')}</span>
+                  )}
+                </div>
+                {event.max_attendees && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>{event.max_attendees} spots</span>
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {!isPastEvent && (
+              <Button
+                variant={isRegistered(event.id) ? 'secondary' : 'default'}
+                onClick={() => handleRegister(event.id)}
+                disabled={registering === event.id}
+                className="shrink-0"
+              >
+                {registering === event.id ? (
+                  'Loading...'
+                ) : isRegistered(event.id) ? (
+                  'Registered ✓'
+                ) : (
+                  'Register'
+                )}
+              </Button>
+            )}
           </div>
-          
-          {!isPastEvent && (
-            <Button
-              variant={isRegistered(event.id) ? 'secondary' : 'default'}
-              onClick={() => handleRegister(event.id)}
-              disabled={registering === event.id}
-              className="shrink-0"
-            >
-              {registering === event.id ? (
-                'Loading...'
-              ) : isRegistered(event.id) ? (
-                'Registered ✓'
-              ) : (
-                'Register'
-              )}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <Layout>
@@ -213,7 +232,7 @@ export default function Events() {
           </TabsList>
           
           <TabsContent value="upcoming">
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse">
