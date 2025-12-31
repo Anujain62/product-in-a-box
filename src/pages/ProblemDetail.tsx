@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -10,13 +10,14 @@ import {
   Code, 
   Zap,
   Trophy,
-  RotateCcw
+  RotateCcw,
+  Play
 } from 'lucide-react';
+import Editor from '@monaco-editor/react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Accordion,
@@ -35,6 +36,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -70,9 +78,30 @@ export default function ProblemDetail() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  const [userSolution, setUserSolution] = useState('');
+  const [userSolution, setUserSolution] = useState('// Write your solution here\n\n');
   const [showSolution, setShowSolution] = useState(false);
   const [revealedHints, setRevealedHints] = useState<number[]>([]);
+  const [language, setLanguage] = useState('javascript');
+  const [output, setOutput] = useState<string>('');
+
+  const languages = [
+    { value: 'javascript', label: 'JavaScript' },
+    { value: 'typescript', label: 'TypeScript' },
+    { value: 'python', label: 'Python' },
+    { value: 'java', label: 'Java' },
+    { value: 'cpp', label: 'C++' },
+    { value: 'c', label: 'C' },
+    { value: 'go', label: 'Go' },
+    { value: 'rust', label: 'Rust' },
+  ];
+
+  const handleRunCode = () => {
+    setOutput('Running code...\n');
+    // Simulate code execution
+    setTimeout(() => {
+      setOutput('> Code executed successfully!\n\n// Note: This is a simulated output.\n// In a real environment, your code would be executed on a secure server.');
+    }, 500);
+  };
 
   const { data: problem, isLoading } = useQuery({
     queryKey: ['problem', problemId],
@@ -306,19 +335,66 @@ export default function ProblemDetail() {
           </Card>
         )}
 
-        {/* Your Solution */}
+        {/* Code Editor */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Your Solution</CardTitle>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <CardTitle className="flex items-center gap-2">
+                <Code className="h-5 w-5" />
+                Your Solution
+              </CardTitle>
+              <div className="flex items-center gap-3">
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languages.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="secondary" size="sm" onClick={handleRunCode}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Run
+                </Button>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <Textarea
-              value={userSolution}
-              onChange={(e) => setUserSolution(e.target.value)}
-              placeholder="Write your solution here..."
-              className="font-mono text-sm min-h-[200px]"
-            />
-            <div className="flex flex-wrap gap-3 mt-4">
+          <CardContent className="space-y-4">
+            {/* Monaco Editor */}
+            <div className="border rounded-lg overflow-hidden">
+              <Editor
+                height="350px"
+                language={language}
+                value={userSolution}
+                onChange={(value) => setUserSolution(value || '')}
+                theme="vs-dark"
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                  tabSize: 2,
+                  wordWrap: 'on',
+                  padding: { top: 16, bottom: 16 },
+                }}
+              />
+            </div>
+
+            {/* Output Console */}
+            {output && (
+              <div className="bg-secondary/50 rounded-lg p-4">
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Output</p>
+                <pre className="text-sm font-mono whitespace-pre-wrap">{output}</pre>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
               {user ? (
                 <>
                   {!isSolved && (
@@ -389,9 +465,23 @@ export default function ProblemDetail() {
             </CardHeader>
             <CardContent>
               {showSolution ? (
-                <pre className="bg-secondary/50 p-4 rounded-lg overflow-x-auto">
-                  <code className="text-sm font-mono">{problem.solution}</code>
-                </pre>
+                <div className="border rounded-lg overflow-hidden">
+                  <Editor
+                    height="300px"
+                    language={language}
+                    value={problem.solution}
+                    theme="vs-dark"
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: 'on',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      padding: { top: 16, bottom: 16 },
+                    }}
+                  />
+                </div>
               ) : (
                 <div className="bg-secondary/30 p-8 rounded-lg text-center">
                   <EyeOff className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
