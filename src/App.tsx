@@ -16,6 +16,7 @@ import StudyGroups from "./pages/StudyGroups";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import LessonViewer from "./pages/LessonViewer";
+import ThreadDetail from "./pages/ThreadDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminSubjects from "./pages/admin/AdminSubjects";
 import AdminCourses from "./pages/admin/AdminCourses";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/courses/:subjectSlug/:courseSlug/:lessonSlug" element={<LessonViewer />} />
             <Route path="/mentors" element={<Mentors />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/community/:threadId" element={<ThreadDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/study-groups" element={<StudyGroups />} />
             <Route path="/profile" element={<Profile />} />
