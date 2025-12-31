@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Users, Trophy, Zap, Code, Server, Layers, Cpu, Network, Database, Brain, CheckCircle, Star } from 'lucide-react';
+import { ArrowRight, BookOpen, Users, Trophy, Zap, Code, Server, Layers, Cpu, Network, Database, Brain, CheckCircle, Star, Calendar, Clock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 import { Layout } from '@/components/layout/Layout';
 
 const subjects = [
@@ -28,7 +32,36 @@ const stats = [
   { value: '50+', label: 'Industry Mentors' },
 ];
 
+interface Event {
+  id: string;
+  title: string;
+  description: string | null;
+  event_type: string;
+  starts_at: string;
+  ends_at: string | null;
+  max_attendees: number | null;
+  is_premium: boolean;
+}
+
 export default function Index() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const { data } = await supabase
+        .from('events')
+        .select('*')
+        .gte('starts_at', new Date().toISOString())
+        .order('starts_at', { ascending: true })
+        .limit(4);
+      
+      setEvents(data || []);
+      setLoadingEvents(false);
+    };
+    fetchEvents();
+  }, []);
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -131,6 +164,75 @@ export default function Index() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Upcoming Events */}
+      <section className="py-20">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold md:text-4xl">Upcoming Events</h2>
+            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+              Join webinars, workshops, and live sessions with industry experts
+            </p>
+          </div>
+          
+          {loadingEvents ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-muted rounded w-1/3 mb-4" />
+                    <div className="h-6 bg-muted rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-muted rounded w-full mb-4" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : events.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No upcoming events scheduled</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {events.map((event) => (
+                <Card key={event.id} className="glass-card hover:scale-[1.02] transition-transform">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge variant={event.event_type === 'webinar' ? 'default' : event.event_type === 'workshop' ? 'secondary' : 'outline'}>
+                        {event.event_type}
+                      </Badge>
+                      {event.is_premium && (
+                        <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Premium
+                        </Badge>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{event.description}</p>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{format(new Date(event.starts_at), 'MMM d')}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{format(new Date(event.starts_at), 'h:mm a')}</span>
+                      </div>
+                    </div>
+                    {event.max_attendees && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {event.max_attendees} spots available
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
