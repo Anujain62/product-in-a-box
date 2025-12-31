@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -47,33 +48,33 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:subjectSlug" element={<CourseDetail />} />
-            <Route path="/courses/:subjectSlug/:courseSlug/:lessonSlug" element={<LessonViewer />} />
+            <Route path="/courses/:subjectSlug/:courseSlug/:lessonSlug" element={<ProtectedRoute><LessonViewer /></ProtectedRoute>} />
             <Route path="/practice" element={<Practice />} />
-            <Route path="/practice/:problemId" element={<ProblemDetail />} />
+            <Route path="/practice/:problemId" element={<ProtectedRoute><ProblemDetail /></ProtectedRoute>} />
             <Route path="/mentors" element={<Mentors />} />
             <Route path="/mentors/:mentorId" element={<MentorDetail />} />
-            <Route path="/my-sessions" element={<MySessions />} />
+            <Route path="/my-sessions" element={<ProtectedRoute><MySessions /></ProtectedRoute>} />
             <Route path="/community" element={<Community />} />
             <Route path="/community/:threadId" element={<ThreadDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/events" element={<Events />} />
             <Route path="/study-groups" element={<StudyGroups />} />
-            <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/subjects" element={<AdminSubjects />} />
-            <Route path="/admin/courses" element={<AdminCourses />} />
-            <Route path="/admin/lessons" element={<AdminLessons />} />
-            <Route path="/admin/problems" element={<AdminProblems />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/mentors" element={<AdminMentors />} />
-            <Route path="/admin/community" element={<AdminCommunity />} />
-            <Route path="/admin/events" element={<AdminEvents />} />
-            <Route path="/admin/analytics" element={<AdminAnalytics />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/study-groups/:groupId" element={<ProtectedRoute><StudyGroupDetail /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/subjects" element={<ProtectedRoute><AdminSubjects /></ProtectedRoute>} />
+            <Route path="/admin/courses" element={<ProtectedRoute><AdminCourses /></ProtectedRoute>} />
+            <Route path="/admin/lessons" element={<ProtectedRoute><AdminLessons /></ProtectedRoute>} />
+            <Route path="/admin/problems" element={<ProtectedRoute><AdminProblems /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+            <Route path="/admin/mentors" element={<ProtectedRoute><AdminMentors /></ProtectedRoute>} />
+            <Route path="/admin/community" element={<ProtectedRoute><AdminCommunity /></ProtectedRoute>} />
+            <Route path="/admin/events" element={<ProtectedRoute><AdminEvents /></ProtectedRoute>} />
+            <Route path="/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
