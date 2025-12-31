@@ -26,6 +26,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useProfile } from '@/hooks/useProfile';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +44,7 @@ export function Navbar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { data: profile } = useProfile();
 
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
@@ -95,7 +97,7 @@ export function Navbar() {
               {/* Streak indicator */}
               <div className="hidden items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 md:flex">
                 <Flame className="h-4 w-4 text-warning" />
-                <span className="text-sm font-medium">0</span>
+                <span className="text-sm font-medium">{profile?.current_streak ?? 0}</span>
               </div>
 
               <DropdownMenu>
