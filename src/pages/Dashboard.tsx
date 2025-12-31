@@ -152,6 +152,9 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="secondary" className="w-full justify-start" asChild>
+                  <Link to="/my-sessions">View My Sessions</Link>
+                </Button>
+                <Button variant="secondary" className="w-full justify-start" asChild>
                   <Link to="/mentors">Book a Mentor Session</Link>
                 </Button>
                 <Button variant="secondary" className="w-full justify-start" asChild>
