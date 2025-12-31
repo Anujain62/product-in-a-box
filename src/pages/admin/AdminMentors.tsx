@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -13,8 +12,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { Star } from 'lucide-react';
+import { Star, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { CreateMentorDialog } from '@/components/admin/CreateMentorDialog';
 
 interface Mentor {
   id: string;
@@ -28,6 +28,7 @@ interface Mentor {
   total_sessions: number;
   is_available: boolean;
   created_at: string;
+  profiles?: { full_name: string | null; avatar_url: string | null } | null;
 }
 
 export default function AdminMentors() {
@@ -47,7 +48,23 @@ export default function AdminMentors() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMentors(data || []);
+
+      // Fetch profiles for each mentor
+      if (data && data.length > 0) {
+        const userIds = data.map(m => m.user_id);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, avatar_url')
+          .in('user_id', userIds);
+
+        const mentorsWithProfiles = data.map(mentor => ({
+          ...mentor,
+          profiles: profiles?.find(p => p.user_id === mentor.user_id) || null,
+        }));
+        setMentors(mentorsWithProfiles);
+      } else {
+        setMentors([]);
+      }
     } catch (error) {
       console.error('Error fetching mentors:', error);
       toast({ title: 'Error', description: 'Failed to fetch mentors', variant: 'destructive' });
@@ -73,12 +90,22 @@ export default function AdminMentors() {
 
   return (
     <AdminLayout title="Mentors" description="Manage mentor profiles and availability">
+      <div className="flex justify-end mb-6">
+        <CreateMentorDialog onSuccess={fetchMentors} />
+      </div>
+
       <Card>
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
           ) : mentors.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">No mentors registered yet.</div>
+            <div className="p-8 text-center">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">No mentors registered yet.</p>
+              <p className="text-sm text-muted-foreground">
+                Click "Add Mentor" to create the first mentor profile.
+              </p>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -96,9 +123,11 @@ export default function AdminMentors() {
                   <TableRow key={mentor.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{mentor.title || 'Mentor'}</p>
+                        <p className="font-medium">
+                          {mentor.profiles?.full_name || mentor.title || 'Mentor'}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {mentor.company || 'Independent'}
+                          {mentor.title} {mentor.company && `at ${mentor.company}`}
                         </p>
                       </div>
                     </TableCell>

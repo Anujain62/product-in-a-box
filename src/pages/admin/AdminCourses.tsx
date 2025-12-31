@@ -30,8 +30,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
 
 interface Course {
   id: string;
@@ -58,6 +59,10 @@ export default function AdminCourses() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; course: Course | null }>({
+    open: false,
+    course: null,
+  });
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -151,14 +156,15 @@ export default function AdminCourses() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this course?')) return;
+  async function handleDelete() {
+    if (!deleteDialog.course) return;
 
     try {
-      const { error } = await supabase.from('courses').delete().eq('id', id);
+      const { error } = await supabase.from('courses').delete().eq('id', deleteDialog.course.id);
 
       if (error) throw error;
       toast({ title: 'Success', description: 'Course deleted successfully' });
+      setDeleteDialog({ open: false, course: null });
       fetchData();
     } catch (error: any) {
       console.error('Error deleting course:', error);
@@ -276,8 +282,12 @@ export default function AdminCourses() {
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
           ) : courses.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              No courses found. Create your first course.
+            <div className="p-8 text-center">
+              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">No courses found.</p>
+              <p className="text-sm text-muted-foreground">
+                Click "Add Course" to create your first course.
+              </p>
             </div>
           ) : (
             <Table>
@@ -311,7 +321,11 @@ export default function AdminCourses() {
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(course)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(course.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteDialog({ open: true, course })}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -322,6 +336,13 @@ export default function AdminCourses() {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ open, course: open ? deleteDialog.course : null })}
+        onConfirm={handleDelete}
+        itemName={deleteDialog.course?.title}
+      />
     </AdminLayout>
   );
 }

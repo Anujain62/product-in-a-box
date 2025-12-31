@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog';
 
 interface Event {
   id: string;
@@ -51,6 +52,10 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; event: Event | null }>({
+    open: false,
+    event: null,
+  });
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -144,14 +149,15 @@ export default function AdminEvents() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this event?')) return;
+  async function handleDelete() {
+    if (!deleteDialog.event) return;
 
     try {
-      const { error } = await supabase.from('events').delete().eq('id', id);
+      const { error } = await supabase.from('events').delete().eq('id', deleteDialog.event.id);
 
       if (error) throw error;
       toast({ title: 'Success', description: 'Event deleted successfully' });
+      setDeleteDialog({ open: false, event: null });
       fetchEvents();
     } catch (error: any) {
       console.error('Error deleting event:', error);
@@ -262,8 +268,12 @@ export default function AdminEvents() {
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
           ) : events.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              No events found. Create your first event.
+            <div className="p-8 text-center">
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground mb-4">No events found.</p>
+              <p className="text-sm text-muted-foreground">
+                Click "Add Event" to create your first event.
+              </p>
             </div>
           ) : (
             <Table>
@@ -299,7 +309,11 @@ export default function AdminEvents() {
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(event)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(event.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteDialog({ open: true, event })}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -310,6 +324,13 @@ export default function AdminEvents() {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ open, event: open ? deleteDialog.event : null })}
+        onConfirm={handleDelete}
+        itemName={deleteDialog.event?.title}
+      />
     </AdminLayout>
   );
 }
