@@ -5,18 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const sampleThreads = [
-  { id: 1, title: 'How to approach Two Pointers problems?', author: 'Rahul', subject: 'DSA', upvotes: 45, replies: 12, isResolved: true, createdAt: '2h ago' },
-  { id: 2, title: 'System Design: When to use Redis vs Memcached?', author: 'Priya', subject: 'System Design', upvotes: 32, replies: 8, isResolved: false, createdAt: '5h ago' },
-  { id: 3, title: 'Best resources for OS interview prep?', author: 'Amit', subject: 'OS', upvotes: 28, replies: 15, isResolved: true, createdAt: '1d ago' },
-  { id: 4, title: 'Difference between TCP and UDP - explained simply', author: 'Sneha', subject: 'CN', upvotes: 56, replies: 6, isResolved: true, createdAt: '2d ago' },
-];
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDiscussionThreads, useTopContributors } from '@/hooks/useCommunity';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function Community() {
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'trending' | 'recent' | 'unanswered'>('trending');
+  const { data: threads, isLoading } = useDiscussionThreads(filter);
+  const { data: topContributors } = useTopContributors();
+
+  const filteredThreads = threads?.filter(t => 
+    t.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <Layout>
@@ -30,7 +33,6 @@ export default function Community() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-4">
-          {/* Main Content */}
           <div className="lg:col-span-3">
             <div className="flex gap-4 mb-6">
               <div className="relative flex-1">
@@ -39,56 +41,64 @@ export default function Community() {
               </div>
             </div>
 
-            <Tabs defaultValue="trending">
+            <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
               <TabsList className="mb-6">
                 <TabsTrigger value="trending"><TrendingUp className="h-4 w-4 mr-2" /> Trending</TabsTrigger>
                 <TabsTrigger value="recent"><Clock className="h-4 w-4 mr-2" /> Recent</TabsTrigger>
                 <TabsTrigger value="unanswered"><MessageSquare className="h-4 w-4 mr-2" /> Unanswered</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="trending" className="space-y-4">
-                {sampleThreads.map((thread) => (
-                  <Card key={thread.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4">
-                        <div className="flex flex-col items-center gap-1 text-center min-w-[60px]">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ThumbsUp className="h-4 w-4" /></Button>
-                          <span className="font-semibold">{thread.upvotes}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold hover:text-primary">{thread.title}</h3>
-                            {thread.isResolved && <CheckCircle className="h-4 w-4 text-success" />}
+              <TabsContent value={filter} className="space-y-4">
+                {isLoading ? (
+                  [1,2,3].map(i => <Card key={i}><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>)
+                ) : filteredThreads && filteredThreads.length > 0 ? (
+                  filteredThreads.map((thread) => (
+                    <Card key={thread.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex gap-4">
+                          <div className="flex flex-col items-center gap-1 text-center min-w-[60px]">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ThumbsUp className="h-4 w-4" /></Button>
+                            <span className="font-semibold">{thread.upvotes}</span>
                           </div>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <Badge variant="secondary">{thread.subject}</Badge>
-                            <span>by {thread.author}</span>
-                            <span>{thread.createdAt}</span>
-                            <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {thread.replies}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold hover:text-primary">{thread.title}</h3>
+                              {thread.is_resolved && <CheckCircle className="h-4 w-4 text-green-500" />}
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                              {thread.subject && <Badge variant="secondary">{thread.subject.name}</Badge>}
+                              <span>by {thread.author?.full_name || 'Anonymous'}</span>
+                              <span>{formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}</span>
+                              <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {thread.reply_count}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No threads yet. Be the first to start a discussion!</p>
+                )}
               </TabsContent>
-              <TabsContent value="recent"><p className="text-muted-foreground text-center py-8">Recent threads will appear here</p></TabsContent>
-              <TabsContent value="unanswered"><p className="text-muted-foreground text-center py-8">Unanswered threads will appear here</p></TabsContent>
             </Tabs>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
             <Card>
               <CardHeader><CardTitle className="text-lg">Top Contributors</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                {['Rahul S.', 'Priya V.', 'Amit K.'].map((name, i) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8"><AvatarFallback className="bg-primary text-primary-foreground text-xs">{name[0]}</AvatarFallback></Avatar>
-                    <span className="text-sm">{name}</span>
-                    <Badge variant="secondary" className="ml-auto">{100 - i * 20} pts</Badge>
+                {topContributors && topContributors.length > 0 ? topContributors.map((c: any) => (
+                  <div key={c.user_id} className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={c.avatar_url} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">{c.full_name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">{c.full_name}</span>
+                    <Badge variant="secondary" className="ml-auto">{c.points} pts</Badge>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-sm text-muted-foreground">No contributors yet</p>
+                )}
               </CardContent>
             </Card>
           </div>
