@@ -15,6 +15,15 @@ import Leaderboard from "./pages/Leaderboard";
 import StudyGroups from "./pages/StudyGroups";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminSubjects from "./pages/admin/AdminSubjects";
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminMentors from "./pages/admin/AdminMentors";
+import AdminCommunity from "./pages/admin/AdminCommunity";
+import AdminEvents from "./pages/admin/AdminEvents";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +45,15 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/study-groups" element={<StudyGroups />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/subjects" element={<AdminSubjects />} />
+            <Route path="/admin/courses" element={<AdminCourses />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/mentors" element={<AdminMentors />} />
+            <Route path="/admin/community" element={<AdminCommunity />} />
+            <Route path="/admin/events" element={<AdminEvents />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
