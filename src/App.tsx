@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import Mentors from "./pages/Mentors";
+import MentorDetail from "./pages/MentorDetail";
 import Community from "./pages/Community";
 import Leaderboard from "./pages/Leaderboard";
 import StudyGroups from "./pages/StudyGroups";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/courses/:subjectSlug" element={<CourseDetail />} />
             <Route path="/courses/:subjectSlug/:courseSlug/:lessonSlug" element={<LessonViewer />} />
             <Route path="/mentors" element={<Mentors />} />
+            <Route path="/mentors/:mentorId" element={<MentorDetail />} />
             <Route path="/community" element={<Community />} />
             <Route path="/community/:threadId" element={<ThreadDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
