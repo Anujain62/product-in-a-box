@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSubjectsWithStats } from '@/hooks/useCourseStats';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
 const iconMap: Record<string, LucideIcon> = {
   'Code': Code,
@@ -24,6 +25,22 @@ const getIcon = (iconName: string | null): LucideIcon => {
 
 export default function Courses() {
   const { data: subjects, isLoading, error } = useSubjectsWithStats();
+
+  // Real-time subscriptions for courses, subjects, and lessons
+  useRealtimeSubscription({
+    table: 'subjects',
+    queryKey: ['subjects-with-stats'],
+  });
+
+  useRealtimeSubscription({
+    table: 'courses',
+    queryKey: ['subjects-with-stats'],
+  });
+
+  useRealtimeSubscription({
+    table: 'lessons',
+    queryKey: ['subjects-with-stats'],
+  });
 
   return (
     <Layout>
