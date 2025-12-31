@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { MessageSquare, ThumbsUp, MessageCircle, Search, Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MessageSquare, ThumbsUp, MessageCircle, Search, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDiscussionThreads, useTopContributors } from '@/hooks/useCommunity';
+import { CreateThreadDialog } from '@/components/community/CreateThreadDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Community() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'trending' | 'recent' | 'unanswered'>('trending');
   const { data: threads, isLoading } = useDiscussionThreads(filter);
@@ -29,7 +31,7 @@ export default function Community() {
             <h1 className="text-3xl font-bold mb-2">Community Forum</h1>
             <p className="text-muted-foreground">Ask questions, share knowledge, and help others</p>
           </div>
-          <Button><Plus className="h-4 w-4 mr-2" /> New Thread</Button>
+          <CreateThreadDialog />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-4">
@@ -53,11 +55,17 @@ export default function Community() {
                   [1,2,3].map(i => <Card key={i}><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>)
                 ) : filteredThreads && filteredThreads.length > 0 ? (
                   filteredThreads.map((thread) => (
-                    <Card key={thread.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                    <Card 
+                      key={thread.id} 
+                      className="hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => navigate(`/community/${thread.id}`)}
+                    >
                       <CardContent className="p-4">
                         <div className="flex gap-4">
                           <div className="flex flex-col items-center gap-1 text-center min-w-[60px]">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ThumbsUp className="h-4 w-4" /></Button>
+                            <div className="h-8 w-8 flex items-center justify-center">
+                              <ThumbsUp className="h-4 w-4 text-muted-foreground" />
+                            </div>
                             <span className="font-semibold">{thread.upvotes}</span>
                           </div>
                           <div className="flex-1">
