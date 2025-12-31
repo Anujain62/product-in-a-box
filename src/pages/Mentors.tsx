@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Star, Calendar, Filter, Briefcase } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useMentors } from '@/hooks/useMentors';
 
 export default function Mentors() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const { data: mentors, isLoading } = useMentors(search);
 
@@ -69,7 +71,7 @@ export default function Mentors() {
                       <span className="text-2xl font-bold">₹{mentor.hourly_rate || 0}</span>
                       <span className="text-muted-foreground">/session</span>
                     </div>
-                    <Button><Calendar className="h-4 w-4 mr-2" /> Book Session</Button>
+                    <Button onClick={() => navigate(`/mentors/${mentor.id}`)}><Calendar className="h-4 w-4 mr-2" /> Book Session</Button>
                   </div>
                 </CardContent>
               </Card>
