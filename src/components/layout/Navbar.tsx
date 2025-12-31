@@ -10,7 +10,8 @@ import {
   User,
   LogOut,
   LayoutDashboard,
-  Flame
+  Flame,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -35,6 +37,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
 
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
@@ -128,6 +131,17 @@ export function Navbar() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2 cursor-pointer text-primary">
+                          <Shield className="h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={() => signOut()}
