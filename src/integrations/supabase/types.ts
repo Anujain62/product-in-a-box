@@ -1024,6 +1024,10 @@ export type Database = {
         Args: { p_lesson_id: string; p_user_id: string }
         Returns: undefined
       }
+      grant_achievement: {
+        Args: { p_achievement_id: string; p_user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
