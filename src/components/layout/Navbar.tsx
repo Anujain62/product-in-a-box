@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
+import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
@@ -84,6 +85,9 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              {/* Notifications */}
+              <NotificationsDropdown />
+
               {/* Streak indicator */}
               <div className="hidden items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 md:flex">
                 <Flame className="h-4 w-4 text-warning" />
