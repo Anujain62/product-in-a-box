@@ -12,7 +12,8 @@ import {
   LayoutDashboard,
   Flame,
   Shield,
-  Code
+  Code,
+  CalendarDays
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,9 +32,9 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/practice', label: 'Practice', icon: Code },
+  { href: '/events', label: 'Events', icon: CalendarDays },
   { href: '/mentors', label: 'Mentors', icon: Users },
   { href: '/community', label: 'Community', icon: MessageSquare },
-  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
 ];
 
 export function Navbar() {

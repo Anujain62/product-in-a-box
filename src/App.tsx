@@ -16,6 +16,7 @@ import MentorDetail from "./pages/MentorDetail";
 import MySessions from "./pages/MySessions";
 import Community from "./pages/Community";
 import Leaderboard from "./pages/Leaderboard";
+import Events from "./pages/Events";
 import StudyGroups from "./pages/StudyGroups";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/community" element={<Community />} />
             <Route path="/community/:threadId" element={<ThreadDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/study-groups" element={<StudyGroups />} />
             <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
             <Route path="/profile" element={<Profile />} />
