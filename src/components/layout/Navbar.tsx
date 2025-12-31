@@ -33,6 +33,7 @@ const navLinks = [
   { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/practice', label: 'Practice', icon: Code },
   { href: '/events', label: 'Events', icon: CalendarDays },
+  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/mentors', label: 'Mentors', icon: Users },
   { href: '/community', label: 'Community', icon: MessageSquare },
 ];
