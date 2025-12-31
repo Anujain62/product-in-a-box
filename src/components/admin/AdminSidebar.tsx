@@ -10,6 +10,8 @@ import {
   Settings,
   ChevronLeft,
   Menu,
+  FileText,
+  Code,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,8 @@ const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Subjects', href: '/admin/subjects', icon: BookOpen },
   { label: 'Courses', href: '/admin/courses', icon: GraduationCap },
+  { label: 'Lessons', href: '/admin/lessons', icon: FileText },
+  { label: 'Problems', href: '/admin/problems', icon: Code },
   { label: 'Users', href: '/admin/users', icon: Users },
   { label: 'Mentors', href: '/admin/mentors', icon: Users },
   { label: 'Community', href: '/admin/community', icon: MessageSquare },

@@ -23,6 +23,8 @@ import StudyGroupDetail from "./pages/StudyGroupDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminSubjects from "./pages/admin/AdminSubjects";
 import AdminCourses from "./pages/admin/AdminCourses";
+import AdminLessons from "./pages/admin/AdminLessons";
+import AdminProblems from "./pages/admin/AdminProblems";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminMentors from "./pages/admin/AdminMentors";
 import AdminCommunity from "./pages/admin/AdminCommunity";
@@ -58,6 +60,8 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/subjects" element={<AdminSubjects />} />
             <Route path="/admin/courses" element={<AdminCourses />} />
+            <Route path="/admin/lessons" element={<AdminLessons />} />
+            <Route path="/admin/problems" element={<AdminProblems />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/mentors" element={<AdminMentors />} />
             <Route path="/admin/community" element={<AdminCommunity />} />
