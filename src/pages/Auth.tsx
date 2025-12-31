@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { Trophy, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ const passwordSchema = z.string().min(6, 'Password must be at least 6 characters
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loading, setLoading] = useState(false);
@@ -27,11 +28,14 @@ export default function Auth() {
   const { toast } = useToast();
   const { user, signIn, signUp } = useAuth();
 
+  // Get the intended destination from location state, or default to dashboard
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -62,7 +66,7 @@ export default function Auth() {
       toast({ title: 'Sign in failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Welcome back!' });
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     }
   };
 
@@ -82,7 +86,7 @@ export default function Auth() {
       }
     } else {
       toast({ title: 'Welcome to Babua Premier League!', description: 'Your account has been created.' });
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     }
   };
 
